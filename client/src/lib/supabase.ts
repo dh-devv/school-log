@@ -91,5 +91,19 @@ export async function getProfileRole(userId: string) {
   const client = requireClient();
   const { data, error } = await client.from("profiles").select("role").eq("id", userId).maybeSingle();
   if (error) throw error;
-  return (data?.role as "user" | "admin" | null) ?? "user";
+  if (data?.role === "user" || data?.role === "admin" || data?.role === "owner") return data.role;
+  throw new Error("계정 권한을 확인할 수 없습니다.");
+}
+
+export type PendingTeacher = { id: string; email: string; created_at: string };
+
+export async function listPendingTeachers(): Promise<PendingTeacher[]> {
+  const { data, error } = await requireClient().rpc("pending_teacher_accounts");
+  if (error) throw error;
+  return data;
+}
+
+export async function approveTeacher(id: string) {
+  const { error } = await requireClient().rpc("approve_teacher_account", { account_id: id });
+  if (error) throw error;
 }

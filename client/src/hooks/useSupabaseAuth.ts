@@ -4,7 +4,8 @@ import { getProfileRole, isSupabaseConfigured, supabase } from "@/lib/supabase";
 
 export function useSupabaseAuth() {
   const [user, setUser] = useState<User | null>(null);
-  const [role, setRole] = useState<"user" | "admin" | null>(null);
+  const [role, setRole] = useState<"user" | "admin" | "owner" | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
@@ -13,19 +14,23 @@ export function useSupabaseAuth() {
       return;
     }
     setLoading(true);
-    const { data } = await supabase.auth.getSession();
-    const nextUser = data.session?.user ?? null;
-    setUser(nextUser);
-    if (nextUser) {
-      try {
+    setError(null);
+    try {
+      const { data, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) throw sessionError;
+      const nextUser = data.session?.user ?? null;
+      setUser(nextUser);
+      if (nextUser) {
         setRole(await getProfileRole(nextUser.id));
-      } catch {
-        setRole("user");
+      } else {
+        setRole(null);
       }
-    } else {
+    } catch {
       setRole(null);
+      setError("계정 권한을 확인하지 못했습니다. 다시 시도해 주세요.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -43,10 +48,14 @@ export function useSupabaseAuth() {
   }, [refresh]);
 
   const signOut = useCallback(async () => {
-    if (supabase) await supabase.auth.signOut();
+    if (supabase) {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+    }
     setUser(null);
     setRole(null);
+    setError(null);
   }, []);
 
-  return { user, role, loading, signIn, signOut, refresh, configured: isSupabaseConfigured };
+  return { user, role, loading, error, signIn, signOut, refresh, configured: isSupabaseConfigured };
 }

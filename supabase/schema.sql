@@ -1,4 +1,5 @@
 -- Run this once in the Supabase SQL editor before the first GitHub Pages deployment.
+-- Then run teacher-registration.sql to enable teacher sign-up and approvals.
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   role text not null default 'user' check (role in ('user', 'admin')),
@@ -62,5 +63,8 @@ create policy "admins_can_update_school_items" on public.school_items for update
 drop policy if exists "admins_can_delete_school_items" on public.school_items;
 create policy "admins_can_delete_school_items" on public.school_items for delete to authenticated using (exists (select 1 from public.profiles where profiles.id = auth.uid() and profiles.role = 'admin'));
 
--- After creating the administrator in Authentication, grant the role:
--- update public.profiles set role = 'admin' where id = '<auth-user-uuid>';
+grant usage on schema public to anon, authenticated;
+grant select on public.school_items to anon, authenticated;
+grant insert, update, delete on public.school_items to authenticated;
+grant usage, select on sequence public.school_items_id_seq to authenticated;
+grant select on public.profiles to authenticated;
