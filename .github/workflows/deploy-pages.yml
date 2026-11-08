@@ -36,6 +36,13 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      - name: Verify Supabase configuration
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        run: |
+          test -n "$VITE_SUPABASE_URL" || { echo "::error::Set VITE_SUPABASE_URL in the github-pages environment."; exit 1; }
+          test -n "$VITE_SUPABASE_ANON_KEY" || { echo "::error::Set VITE_SUPABASE_ANON_KEY in the github-pages environment."; exit 1; }
       - name: Build static site
         env:
           VITE_BASE_PATH: /school-log/
