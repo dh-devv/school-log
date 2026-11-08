@@ -5,7 +5,7 @@ import SchoolItemCard from "@/components/SchoolItemCard";
 import { CATEGORY_OPTIONS } from "@/lib/categories";
 import { isCurrentItem, isPastItem, todayString } from "@/lib/school-items";
 import { isSupabaseConfigured, listPublicSchoolItems } from "@/lib/supabase";
-import { adminHref, homeHref, recordsHref } from "@/lib/site";
+import { adminHref, homeHref, recordsHref, signupHref } from "@/lib/site";
 
 export default function Home() {
   const [category, setCategory] = useState<SchoolItemCategory | "all">("all");
@@ -41,9 +41,9 @@ export default function Home() {
     <div className="site-shell">
       <header className="topbar container">
         <a href={homeHref} className="brand" aria-label="School Log 홈"><span className="brand-mark">SL</span><span className="brand-copy"><strong>SCHOOL LOG</strong><small>PUBLIC SCHOOL RECORDS</small></span></a>
-        <nav className="topnav" aria-label="주요 메뉴"><a href={recordsHref}>기록 둘러보기</a><a className="admin-link" href={adminHref}><span>관리자</span><span className="admin-link-arrow">↗</span></a></nav>
+        <nav className="topnav" aria-label="주요 메뉴"><a href={recordsHref}>기록 둘러보기</a><a href={adminHref}>로그인</a><a className="admin-link" href={signupHref}>회원가입</a></nav>
         <button className="mobile-menu-button" type="button" aria-label="메뉴 열기" aria-expanded={menuOpen} onClick={() => setMenuOpen(value => !value)}><Menu size={20} /></button>
-        {menuOpen && <nav className="mobile-nav" aria-label="모바일 메뉴"><a href={recordsHref} onClick={() => setMenuOpen(false)}>기록 둘러보기</a><a href={adminHref} onClick={() => setMenuOpen(false)}>관리자 ↗</a></nav>}
+        {menuOpen && <nav className="mobile-nav" aria-label="모바일 메뉴"><a href={recordsHref} onClick={() => setMenuOpen(false)}>기록 둘러보기</a><a href={adminHref} onClick={() => setMenuOpen(false)}>로그인</a><a href={signupHref} onClick={() => setMenuOpen(false)}>회원가입</a></nav>}
       </header>
 
       <main>

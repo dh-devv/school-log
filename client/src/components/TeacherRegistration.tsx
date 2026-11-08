@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { adminHref } from "@/lib/site";
 import { supabase } from "@/lib/supabase";
 
-export default function TeacherRegistration({ onBack }: { onBack: () => void }) {
+export default function TeacherRegistration() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -58,6 +58,6 @@ export default function TeacherRegistration({ onBack }: { onBack: () => void }) 
       {message && <p role="status">{message}</p>}
       <button className="primary-button" type="submit" disabled={pending}>{pending ? "요청 중…" : "가입 요청"}</button>
     </form>
-    <button className="secondary-button" type="button" onClick={onBack}>로그인으로 돌아가기</button>
+    <a className="secondary-button" href={adminHref}>로그인으로 돌아가기</a>
   </section>;
 }

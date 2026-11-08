@@ -6,7 +6,7 @@ import TeacherApprovals from "@/components/TeacherApprovals";
 import TeacherRegistration from "@/components/TeacherRegistration";
 import { CATEGORY_LABELS, CATEGORY_OPTIONS } from "@/lib/categories";
 import { formatDateRange, todayString } from "@/lib/school-items";
-import { adminHref, homeHref } from "@/lib/site";
+import { adminHref, homeHref, signupHref } from "@/lib/site";
 import { createPublicSchoolItem, deletePublicSchoolItem, isSupabaseConfigured, listPublicSchoolItems, updatePublicSchoolItem } from "@/lib/supabase";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { toast } from "sonner";
@@ -14,7 +14,7 @@ import { toast } from "sonner";
 type FormState = { title: string; category: SchoolItemCategory; startDate: string; endDate: string; description: string };
 const newForm = (): FormState => ({ title: "", category: "school-event", startDate: todayString(), endDate: "", description: "" });
 
-export default function Admin() {
+export default function Admin({ initialRegistering = false }: { initialRegistering?: boolean }) {
   const auth = useSupabaseAuth();
   const [form, setForm] = useState<FormState>(newForm);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -29,7 +29,6 @@ export default function Admin() {
   const [loginError, setLoginError] = useState<string | null>(null);
   const [loginPending, setLoginPending] = useState(false);
   const [actionPending, setActionPending] = useState(false);
-  const [registering, setRegistering] = useState(false);
 
   useEffect(() => {
     document.title = "관리자 · School Log";
@@ -87,8 +86,8 @@ export default function Admin() {
   if (auth.loading) return <div className="admin-shell"><div className="admin-loading"><div className="loading-mark" /><strong>관리자 권한을 확인하는 중입니다.</strong></div></div>;
   if (!isSupabaseConfigured) return <div className="admin-shell"><AdminHeader /><AccessPanel title="연결 설정이 필요합니다." description="GitHub Pages에서 관리자 기능을 사용하려면 Supabase URL과 공개 키를 배포 환경 변수로 설정해 주세요." action={null} /> </div>;
   if (auth.error) return <div className="admin-shell"><AdminHeader /><AccessPanel title="계정 확인 실패" description={auth.error} action={<button className="secondary-button" type="button" onClick={() => void auth.refresh()}>다시 시도</button>} /></div>;
-  if (!auth.user && registering) return <div className="admin-shell"><AdminHeader /><TeacherRegistration onBack={() => setRegistering(false)} /></div>;
-  if (!auth.user) return <div className="admin-shell"><AdminHeader /><section className="access-panel"><div className="access-icon"><ShieldCheck size={27} /></div><p className="eyebrow"><span className="eyebrow-line" /> ACCOUNT ACCESS</p><h1>로그인</h1><p>관리자와 선생님은 같은 화면에서 로그인합니다.<br />선생님은 회원가입 후 승인을 받아야 자료를 관리할 수 있습니다.</p><form className="login-form" autoComplete="off" onSubmit={handleLogin}><label>이메일<input type="email" value={email} onChange={event => setEmail(event.target.value)} autoComplete="off" required /></label><label>비밀번호<input type="password" value={password} onChange={event => setPassword(event.target.value)} autoComplete="off" required /></label>{loginError && <p className="form-error" role="alert">{loginError}</p>}<button className="primary-button" type="submit" disabled={loginPending}>{loginPending ? "로그인 중…" : "로그인"}<ArrowLeft size={17} className="button-arrow" /></button></form><button className="secondary-button" type="button" onClick={() => setRegistering(true)}>회원가입</button><a className="back-home" href={homeHref}>← 공개 기록으로 돌아가기</a></section></div>;
+  if (!auth.user && initialRegistering) return <div className="admin-shell"><AdminHeader /><TeacherRegistration /></div>;
+  if (!auth.user) return <div className="admin-shell"><AdminHeader /><section className="access-panel"><div className="access-icon"><ShieldCheck size={27} /></div><p className="eyebrow"><span className="eyebrow-line" /> ACCOUNT ACCESS</p><h1>로그인</h1><p>관리자와 선생님은 같은 화면에서 로그인합니다.<br />선생님은 회원가입 후 승인을 받아야 자료를 관리할 수 있습니다.</p><form className="login-form" autoComplete="off" onSubmit={handleLogin}><label>이메일<input type="email" value={email} onChange={event => setEmail(event.target.value)} autoComplete="off" required /></label><label>비밀번호<input type="password" value={password} onChange={event => setPassword(event.target.value)} autoComplete="off" required /></label>{loginError && <p className="form-error" role="alert">{loginError}</p>}<button className="primary-button" type="submit" disabled={loginPending}>{loginPending ? "로그인 중…" : "로그인"}<ArrowLeft size={17} className="button-arrow" /></button></form><a className="secondary-button" href={signupHref}>회원가입</a><a className="back-home" href={homeHref}>← 공개 기록으로 돌아가기</a></section></div>;
   if (auth.role !== "admin" && auth.role !== "owner") return <div className="admin-shell"><AdminHeader userName={auth.user.email || "사용자"} onLogout={handleLogout} /><AccessPanel title="승인을 기다리고 있습니다." description="이메일 인증을 마친 계정은 대표 관리자의 승인을 받아야 자료를 관리할 수 있습니다. 학교 담당자에게 문의해 주세요." action={<button className="secondary-button" type="button" onClick={handleLogout}><LogOut size={16} /> 로그아웃</button>} /></div>;
 
   return <div className="admin-shell"><AdminHeader userName={auth.user.email || "관리자"} onLogout={handleLogout} /><main className="admin-main container"><div className="admin-title-row"><div><p className="eyebrow"><span className="eyebrow-line" /> MANAGEMENT CONSOLE</p><h1>공개 자료 관리</h1><p>학교가 공개를 승인한 일정과 공지만 등록해 주세요.</p></div><div className="admin-count"><strong>{items.length}</strong><span>전체 자료</span></div></div>{notice && <div className="notice-banner"><CheckCircle2 size={17} /> {notice}<button type="button" aria-label="안내 닫기" onClick={() => setNotice(null)}><X size={16} /></button></div>}
